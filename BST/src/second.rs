@@ -4,7 +4,7 @@ pub trait NodeKey:  PartialOrd + PartialEq + Copy {}
 impl<T: PartialOrd + PartialEq + Copy> NodeKey for T {}
 
 #[derive(Debug)]
-pub struct BST<T:NodeKey> {
+pub struct Bst<T:NodeKey> {
 	root: Link<T>,
 }
 
@@ -17,10 +17,58 @@ struct Node<T: NodeKey> {
 	right: Link<T>,
 }
 
-impl<T: NodeKey> BST<T> {
+//why they are different?
+pub struct IntoIter<T: NodeKey>(Bst<T>);
+
+
+impl<T: NodeKey> Iterator for IntoIter<T> {
+	type Item = T;
+	fn next(&mut self) -> Option<Self::Item> {
+		self.0.root.take().map(|node| {
+			let node = *node;
+			self.0.root = node.right;
+			node.elem
+		})
+	}
+}
+
+
+
+impl<T: NodeKey> IntoIterator for Bst<T> {
+	type Item = T;
+	type IntoIter = IntoIter<T>;
+	fn into_iter(self) -> Self::IntoIter {
+		self.into_iter()	
+	}
+}
+
+impl<'a, T:NodeKey> IntoIterator for &'a Bst<T> {
+	type Item = &'a T;
+	type IntoIter = Iter<'a, T>;
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+// watch the defination
+pub struct Iter<'a, T: 'a + NodeKey > {
+	next: Option<&'a Node<T>>,
+}
+impl<'a, T: NodeKey> Iterator for Iter<'a, T> {
+	type Item = &'a T;
+	fn next(&mut self) -> Option<Self::Item> {
+		self.next.map(|node| {
+			self.next = node.right.as_ref().map(|node| &**node);
+			&node.elem
+		})
+	}
+
+}
+
+impl<T: NodeKey> Bst<T> {
 	// add code here
 	pub fn new() -> Self {
-		BST { root: None }
+		Bst { root: None }
 	}
 
 	pub fn insert(&mut self, elem: T) -> bool {
@@ -55,6 +103,16 @@ impl<T: NodeKey> BST<T> {
 			},
 		}
 
+	}
+
+	pub fn into_iter(self) -> IntoIter<T> {
+		IntoIter(self)
+	}
+
+	pub fn iter(&self) -> Iter<T> {
+		Iter {
+			next: self.root.as_ref().map(|node| &**node)
+		}
 	}
 
 }
@@ -142,7 +200,7 @@ impl<T: NodeKey> Node<T> {
 	*/
 }
 /*
-impl Drop for BST {
+impl Drop for Bst {
 	// add code here
 	fn drop(&mut self) {
 		match self.root {
@@ -156,11 +214,11 @@ impl Drop for BST {
 
 #[cfg(test)]
 mod tests {
-	use super::BST;
+	use super::Bst;
 
 	#[test]
 	fn basics() {
-		let mut bst = BST::new();
+		let mut bst = Bst::new();
 
 		assert_eq!(bst.search(5), false);
 
@@ -174,14 +232,83 @@ mod tests {
 
 	#[test]
 
-	fn testT() {
-		let mut bst = BST::new();
+	fn gen_test() {
+		let mut bst = Bst::new();
 
 		bst.insert(1.1);
 		bst.insert(1.2);
 		bst.insert(1.3);
 
 		assert_eq!(bst.search(1.2), true);
+	}
+
+	#[test]
+	fn into_iter() {
+		let mut bst = Bst::new();
+
+		bst.insert(5);
+		bst.insert(3);
+		bst.insert(7);
+		bst.insert(9);
+		bst.insert(11);
+
+		let mut iter = bst.into_iter();
+
+		assert_eq!(iter.next(), Some(5));
+		assert_eq!(iter.next(), Some(7));
+		assert_eq!(iter.next(), Some(9));
+	}
+
+	#[test]
+	fn intoIterator() {
+		let mut bst = Bst::new();
+
+		bst.insert(5);
+		bst.insert(3);
+		bst.insert(7);
+		bst.insert(9);
+		bst.insert(11);
+
+		for elt in bst {
+			println!("{}", elt);
+		}
+
+	}
+
+	#[test]
+	fn iter() {
+
+		let mut bst = Bst::new();
+
+		bst.insert(5);
+		bst.insert(3);
+		bst.insert(7);
+		bst.insert(9);
+		bst.insert(11);
+
+		let mut iter = bst.iter();
+
+		assert_eq!(iter.next(), Some(&5));
+		assert_eq!(iter.next(), Some(&7));
+		assert_eq!(iter.next(), Some(&9));
+
+	}
+
+	#[test]
+	fn intoIterator_ref() {
+		let mut bst = Bst::new();
+
+		bst.insert(5);
+		bst.insert(3);
+		bst.insert(7);
+		bst.insert(9);
+		bst.insert(11);
+
+
+		for elt in &bst {
+			println!("{}", elt);
+		}
+
 	}
 }
 
