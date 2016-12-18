@@ -50,6 +50,16 @@ impl<'a, T:NodeKey> IntoIterator for &'a Bst<T> {
 	}
 }
 
+
+impl <'a, T:NodeKey> IntoIterator for &'a mut Bst<T> {
+	type Item = &'a mut T;
+	type IntoIter = IterMut<'a, T>;
+	fn into_iter(mut self) -> Self::IntoIter {
+		self.iter_mut()
+	}
+
+}
+
 // watch the defination
 pub struct Iter<'a, T: 'a + NodeKey > {
 	next: Option<&'a Node<T>>,
@@ -60,6 +70,22 @@ impl<'a, T: NodeKey> Iterator for Iter<'a, T> {
 		self.next.map(|node| {
 			self.next = node.right.as_ref().map(|node| &**node);
 			&node.elem
+		})
+	}
+
+}
+
+pub struct IterMut<'a, T:'a + NodeKey> {
+	next: Option<&'a mut Node<T>>,
+}
+
+impl<'a, T: NodeKey> Iterator for IterMut<'a, T> {
+	type Item = &'a mut T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.next.take().map(|node| {
+			self.next = node.right.as_mut().map(|node| &mut **node);
+			&mut node.elem
 		})
 	}
 
@@ -112,6 +138,12 @@ impl<T: NodeKey> Bst<T> {
 	pub fn iter(&self) -> Iter<T> {
 		Iter {
 			next: self.root.as_ref().map(|node| &**node)
+		}
+	}
+
+	pub fn iter_mut(&mut self) -> IterMut<T> {
+		IterMut {
+			next: self.root.as_mut().map(|node| &mut **node)
 		}
 	}
 
@@ -308,7 +340,45 @@ mod tests {
 		for elt in &bst {
 			println!("{}", elt);
 		}
-
 	}
+
+	#[test]
+	fn iter_mut() {
+		let mut bst = Bst::new();
+
+		bst.insert(5);
+		bst.insert(3);
+		bst.insert(7);
+		bst.insert(9);
+		bst.insert(11);
+
+		let mut iter = bst.iter_mut();
+
+		assert_eq!(iter.next(), Some(&mut 5));
+		assert_eq!(iter.next(), Some(&mut 7));
+		assert_eq!(iter.next(), Some(&mut 9));
+
+		
+	}
+
+
+	#[test]
+	fn iter_mut_2() {
+		let mut bst = Bst::new();
+
+		bst.insert(5);
+		bst.insert(3);
+		bst.insert(7);
+		bst.insert(9);
+		bst.insert(11);
+
+		for elt in &mut bst {
+			println!("{}", elt);
+		}
+		
+
+		
+	}
+
 }
 
