@@ -117,7 +117,39 @@ impl Node {
 
 		}
 	}
+
+	/*
+	fn drop(&mut self) {
+		if self.right == Link::Empty && self.left == Link::Empty  {
+			mem::replace(&mut self, Link::Empty);
+			return;
+		}
+		match self.left {
+			Link::Empty => {},
+			Link::More(ref mut node) => { node.drop(); },
+		}
+
+		match self.right {
+			Link::Empty => {},
+			Link::More(ref mut node) => { node.drop(); },
+		}
+
+			
+	}
+	*/
 }
+/*
+impl Drop for BST {
+	// add code here
+	fn drop(&mut self) {
+		match self.root {
+			Link::More(ref mut node) => { node.drop() },
+			Link::Empty => {},
+		}
+	}
+}
+*/
+
 
 #[cfg(test)]
 mod tests {
