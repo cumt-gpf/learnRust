@@ -17,9 +17,15 @@ struct Node<T: NodeKey> {
 	right: Link<T>,
 }
 
-//why they are different?
 pub struct IntoIter<T: NodeKey>(Bst<T>);
 
+pub struct Iter<'a, T: 'a + NodeKey > {
+	next: Option<&'a Node<T>>,
+}
+
+pub struct IterMut<'a, T:'a + NodeKey> {
+	next: Option<&'a mut Node<T>>,
+}
 
 impl<T: NodeKey> Iterator for IntoIter<T> {
 	type Item = T;
@@ -32,6 +38,30 @@ impl<T: NodeKey> Iterator for IntoIter<T> {
 	}
 }
 
+impl<'a, T: NodeKey> Iterator for Iter<'a, T> {
+	type Item = &'a T;
+	fn next(&mut self) -> Option<Self::Item> {
+		self.next.map(|node| {
+			self.next = node.right.as_ref().map(|node| &**node);
+			&node.elem
+		})
+	}
+
+}
+
+
+
+impl<'a, T: NodeKey> Iterator for IterMut<'a, T> {
+	type Item = &'a mut T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.next.take().map(|node| {
+			self.next = node.right.as_mut().map(|node| &mut **node);
+			&mut node.elem
+		})
+	}
+
+}
 
 
 impl<T: NodeKey> IntoIterator for Bst<T> {
@@ -60,36 +90,7 @@ impl <'a, T:NodeKey> IntoIterator for &'a mut Bst<T> {
 
 }
 
-// watch the defination
-pub struct Iter<'a, T: 'a + NodeKey > {
-	next: Option<&'a Node<T>>,
-}
-impl<'a, T: NodeKey> Iterator for Iter<'a, T> {
-	type Item = &'a T;
-	fn next(&mut self) -> Option<Self::Item> {
-		self.next.map(|node| {
-			self.next = node.right.as_ref().map(|node| &**node);
-			&node.elem
-		})
-	}
 
-}
-
-pub struct IterMut<'a, T:'a + NodeKey> {
-	next: Option<&'a mut Node<T>>,
-}
-
-impl<'a, T: NodeKey> Iterator for IterMut<'a, T> {
-	type Item = &'a mut T;
-
-	fn next(&mut self) -> Option<Self::Item> {
-		self.next.take().map(|node| {
-			self.next = node.right.as_mut().map(|node| &mut **node);
-			&mut node.elem
-		})
-	}
-
-}
 
 impl<T: NodeKey> Bst<T> {
 	// add code here
