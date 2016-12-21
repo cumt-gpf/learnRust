@@ -1,6 +1,0 @@
-[package]
-name = "BST"
-version = "0.1.0"
-authors = ["gpf"]
-
-[dependencies]
