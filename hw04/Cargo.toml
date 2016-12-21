@@ -1,0 +1,7 @@
+[package]
+name = "hw04"
+version = "0.1.0"
+authors = ["cumt-gpf <2910478464@qq.com>"]
+
+[dependencies]
+rand = "0.3.15"
