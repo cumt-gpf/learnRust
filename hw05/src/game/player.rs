@@ -60,12 +60,53 @@ impl Player {
 
     /// Execute the given command on the player and board state.
     pub fn act(&mut self, cmd: Command) -> Result<(), ()> {
-        unimplemented!();
+        match cmd {
+            Command::Go(des) => {
+                let neighbor_room = try!(self.find_room(des));
+                let mut room = neighbor_room.borrow_mut();
+                println!("Welcome to room: {}", room.name);
+
+                for curio in room.consum_contents() {
+                    self.use_curio(curio);
+                }
+
+                if room.wumpus {
+                    println!("Oops you are eaten by Wumpus!");
+                    self.hp = 0;
+                } 
+                self.location = neighbor_room.clone();
+                Ok(())
+            },
+            Command::Shoot(des) => {
+                let neighbor_room = try!(self.find_room(des));
+
+                let room = neighbor_room.borrow();
+
+                if room.wumpus {
+                    println!("You kill the wumpus");
+                    self.won = true;
+                } else {
+                    println!("You miss one arrow");
+                }
+
+                Ok(())
+
+
+            },
+        }
     }
 
     /// Find one of the neighbors of the current room based on its name. Case insensitive.
     fn find_room(&self, room: String) -> Result<Rc<RefCell<Room>>, ()> {
-        unimplemented!()
+        let current = self.location.clone();
+        let current_room = current.borrow();
+
+        current_room.neighbors().iter().find(|n| {
+            let neighbor = n.borrow();
+            neighbor.name.to_lowercase() == room.to_lowercase()
+        })
+            .map(|neighbor| neighbor.clone())
+            .ok_or(())
     }
 }
 

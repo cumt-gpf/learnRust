@@ -12,6 +12,8 @@ use super::room::Room;
 pub type Result<T> = result::Result<T, String>;
 
 pub struct Board {
+    //why use Rc first? can get a lot of pointers.
+    //why use RefCell? We need to mutably borrow the "Room".
     pub rooms: Vec<Rc<RefCell<Room>>>,
 }
 
@@ -84,11 +86,18 @@ impl Board {
             let left_num : u64 = try!(h[0].as_u64().ok_or("Unable to parse left room".to_string()));
             let right_num : u64 = try!(h[1].as_u64().ok_or("Unable to parse right room".to_string()));
 
-            hall.left = self.rooms[left_num as usize].clone();
-            hall.right = self.rooms[right_num as usize].clone();
+            let left_room = self.rooms[left_num as usize].clone();
+            let right_room = self.rooms[right_num as usize].clone();
+
+            hall.left = left_room.clone();
+            hall.right = right_room.clone();
 
             // Add hall links to rooms
-            let mut left_room = self.rooms[left_num as usize].clone().borrow_mut();
+            let hall_rc = Rc::new(hall);
+            let mut left_room_mut = left_room.borrow_mut();
+            left_room_mut.halls.push(hall_rc.clone());
+            let mut right_room_mut = right_room.borrow_mut();
+            right_room_mut.halls.push(hall_rc.clone());
         }
         Ok(())
     }

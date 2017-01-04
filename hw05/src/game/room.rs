@@ -35,4 +35,24 @@ impl Room {
         // TODO: Implement
         unimplemented!();
     }
+
+    pub fn neighbors(&self) -> Vec<Rc<RefCell<Room>>> {
+        let mut neighbors = vec![];
+
+        for hall in self.halls.clone() {
+            let left = hall.left.borrow();
+            let right = hall.right.borrow();
+
+            if *self == *left {
+                neighbors.push(hall.right.clone());
+            } else if *self == *right {
+                neighbors.push(hall.left.clone());
+            }
+        }
+
+        neighbors
+    }
+    pub fn consum_contents(&mut self) -> Vec<Curio> {
+        mem::replace(&mut self.contents, vec![])
+    }
 }
